@@ -8,9 +8,17 @@ Enterprise-grade task and project management microservices architecture, built u
 
 This monorepo contains three microservices:
 
-- **API Service** - Core business logic with Prisma ORM and database management
-- **Gateway Service** - API Gateway with request routing and proxy middleware
+- **API Service** - Core business logic with Prisma ORM and database management (internal only, not directly accessible)
+- **Gateway Service** - API Gateway with request routing and proxy middleware (main entry point on port 3000)
 - **Logger Service** - Centralized logging service using Winston
+
+**Request Flow:**
+```
+Client → Gateway (port 3000) → API Service (port 4000, internal)
+                              → Logger Service (port 4001)
+```
+
+All API requests must go through Gateway at `http://localhost:3000/api/*`. The API service is not directly exposed to the host for security.
 
 ## 🚀 Setup
 
@@ -84,7 +92,7 @@ pnpm run start:all
 #### Prerequisites
 
 - Docker Desktop (or Docker Engine + Docker Compose)
-- Ports 3000, 4000, 4001, and 3306 available
+- Port 3000 available (only Gateway is exposed, all other services are internal)
 
 #### Environment Setup
 
@@ -163,12 +171,20 @@ docker exec -it taskopedia-mysql mysql -u taskopedia -ptaskopedia123 taskopedia
 
 #### Access Services
 
-- **Gateway:** http://localhost:3000
-- **API:** http://localhost:4000
-- **Logger:** http://localhost:4001
-- **MySQL:** localhost:3306
+- **Gateway:** http://localhost:3000 (All API requests go through Gateway)
+- **API Endpoints:** http://localhost:3000/api/* (e.g., `/api/user/signup`, `/api/project`)
 
-**Note:** Database migrations run automatically on API container startup.
+**Internal Services (not exposed to host):**
+- **API Service:** Port 4000 (internal only, accessible via Gateway)
+- **Logger Service:** Port 4001 (internal only, accessible from API service)
+- **MySQL Database:** Port 3306 (internal only, accessible from API service)
+
+**Important:** 
+- Only Gateway (port 3000) is exposed to the host for security
+- All other services (API, Logger, MySQL) are internal and only accessible within Docker network
+- Gateway routes `/api/*` requests to the API service internally
+- Database migrations run automatically on API container startup
+- To access MySQL, use: `docker exec -it taskopedia-mysql mysql -u taskopedia -ptaskopedia123 taskopedia`
 
 ---
 
@@ -192,18 +208,20 @@ taskopedia/
 
 JWT-based authentication system with the following endpoints:
 
-**Public Endpoints:**
+**Public Endpoints** (access via Gateway: `http://localhost:3000/api/...`):
 - `POST /api/user/signup` - Register new user
 - `POST /api/user/login` - Login (returns JWT token)
 - `POST /api/user/verify-otp` - Verify account with OTP
 - `POST /api/user/resend-otp` - Resend OTP
 - `POST /api/user/reset-password` - Reset password
 
-**Protected Endpoints** (require `Authorization: Bearer <token>` header):
-- User CRUD operations
-- Project management (create, update, archive, delete)
-- Task management (create, update, archive, delete)
-- Dashboard statistics
+**Protected Endpoints** (require `Authorization: Bearer <token>` header, access via Gateway):
+- User CRUD operations: `GET /api/user`, `PUT /api/user/:id`, etc.
+- Project management: `GET /api/project`, `POST /api/project`, etc.
+- Task management: `GET /api/tasks`, `POST /api/tasks`, etc.
+- Dashboard statistics: `GET /api/dashboard/stats`
+
+**Note:** All API endpoints must be accessed through Gateway at `http://localhost:3000/api/*`. Direct access to API service (port 4000) is disabled for security.
 
 ## 🗄️ Database Commands
 
