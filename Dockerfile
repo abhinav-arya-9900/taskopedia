@@ -48,7 +48,7 @@ RUN corepack enable && corepack prepare pnpm@10.18.1 --activate
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/api/package.json ./apps/api/
 COPY apps/gateway/package.json ./apps/gateway/
 COPY apps/logger/package.json ./apps/logger/
@@ -72,6 +72,13 @@ COPY --from=build /app/apps/logger/dist ./apps/logger/dist
 # Prisma generates files in .pnpm directory structure for pnpm workspaces
 # Copy the entire .pnpm directory to ensure Prisma client works
 COPY --from=build /app/node_modules/.pnpm ./node_modules/.pnpm
+
+# Copy entrypoint script for API service (auto-migration)
+COPY apps/api/docker-entrypoint.sh ./apps/api/docker-entrypoint.sh
+RUN chmod +x ./apps/api/docker-entrypoint.sh
+
+# Install netcat for database connection check
+RUN apk add --no-cache netcat-openbsd
 
 # Create logs directory for logger service
 RUN mkdir -p /app/apps/logger/logs
