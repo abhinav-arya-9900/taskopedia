@@ -12,14 +12,17 @@ This monorepo contains three microservices:
 - **Gateway Service** - API Gateway with request routing and proxy middleware
 - **Logger Service** - Centralized logging service using Winston
 
-## 🚀 Quick Start
+## 🚀 Setup
 
-### Prerequisites
+### Option 1: Setup Manually
+
+#### Prerequisites
 
 - Node.js >= 18.0.0
 - pnpm >= 10.0.0
+- MySQL database
 
-### Installation
+#### Installation
 
 ```bash
 # Install dependencies
@@ -29,41 +32,145 @@ pnpm install
 pnpm run db:generate
 ```
 
-### Environment Setup
+#### Environment Setup
 
-Copy the example environment file and update values:
+Create `.env` file in root directory:
 
-```bash
-# Copy .env.example to .env
-cp .env.example .env
+```env
+DATABASE_URL=mysql://user:password@localhost:3306/taskopedia
+JWT_SECRET=your-secret-key-change-in-production-make-it-long-and-random
+JWT_EXPIRES_IN=7d
+API_PORT=4000
+GATEWAY_PORT=3000
+LOGGER_PORT=4001
+API_URL=http://localhost:4000
+LOGGER_URL=http://localhost:4001
+NODE_ENV=development
 ```
 
-Then update the `.env` file with your database credentials and other settings.
+#### Database Setup
 
-### Development
+```bash
+# Run migrations
+pnpm run db:migrate
+```
+
+#### Development
 
 ```bash
 # Run all services
 pnpm run dev:all
 
-# Run individual services
+# Or run individually
 pnpm run dev:api      # API on port 4000
 pnpm run dev:gateway  # Gateway on port 3000
 pnpm run dev:logger   # Logger on port 4001
 ```
 
-### Build & Production
+#### Production
 
 ```bash
 # Build all services
 pnpm run build
 
-# Build specific service
-pnpm run build:api
-
-# Start in production
+# Start all services
 pnpm run start:all
 ```
+
+---
+
+### Option 2: Setup with Docker (Self-Host)
+
+#### Prerequisites
+
+- Docker Desktop (or Docker Engine + Docker Compose)
+- Ports 3000, 4000, 4001, and 3306 available
+
+#### Environment Setup
+
+Create `.env` file in root directory:
+
+```env
+MYSQL_ROOT_PASSWORD=rootpassword
+MYSQL_DATABASE=taskopedia
+MYSQL_USER=taskopedia
+MYSQL_PASSWORD=taskopedia123
+MYSQL_PORT=3306
+
+API_PORT=4000
+GATEWAY_PORT=3000
+LOGGER_PORT=4001
+
+API_URL=http://api:4000
+GATEWAY_URL=http://gateway:3000
+LOGGER_URL=http://logger:4001
+
+JWT_SECRET=your-secret-key-change-in-production-make-it-long-and-random
+JWT_EXPIRES_IN=7d
+
+NODE_ENV=production
+```
+
+#### Quick Start
+
+```bash
+# Build and start all services
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+```
+
+#### Common Commands
+
+```bash
+# Start services
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# Stop and remove containers with volumes (⚠️ deletes database data)
+docker-compose down -v
+
+# View logs
+docker-compose logs -f api
+
+# Restart service
+docker-compose restart api
+
+# Access container in interactive mode
+docker-compose exec api sh
+# Or using container name directly
+docker exec -it taskopedia-api /bin/sh
+docker exec -it taskopedia-gateway /bin/sh
+docker exec -it taskopedia-logger /bin/sh
+docker exec -it taskopedia-mysql /bin/bash
+
+# Access MySQL database and view records
+# Note: docker-compose commands must be run from project root directory
+docker-compose exec mysql mysql -u taskopedia -ptaskopedia123 taskopedia
+# Or using container name directly (works from any directory)
+docker exec -it taskopedia-mysql mysql -u taskopedia -ptaskopedia123 taskopedia
+
+# Once inside MySQL, you can run:
+# SHOW TABLES;
+# SELECT * FROM User;
+# SELECT * FROM Project;
+# SELECT * FROM Task;
+# EXIT;
+```
+
+#### Access Services
+
+- **Gateway:** http://localhost:3000
+- **API:** http://localhost:4000
+- **Logger:** http://localhost:4001
+- **MySQL:** localhost:3306
+
+**Note:** Database migrations run automatically on API container startup.
+
+---
 
 ## 📦 Project Structure
 
@@ -129,4 +236,3 @@ pnpm run format       # Format code
 ## 📝 License
 
 ISC
-
