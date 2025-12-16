@@ -9,8 +9,9 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-taskopedia}
       MYSQL_USER: ${MYSQL_USER:-taskopedia}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-taskopedia123}
-    ports:
-      - "${MYSQL_PORT:-3306}:3306"
+    # MySQL port not exposed - access via docker exec or internal network only
+    # ports:
+    #   - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -38,8 +39,9 @@ services:
       - LOGGER_URL=http://logger:${LOGGER_PORT:-4001}
       - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
-    ports:
-      - "${API_PORT:-4000}:4000"
+    # API port not exposed - only accessible through Gateway
+    # ports:
+    #   - "${API_PORT:-4000}:4000"
     depends_on:
       mysql:
         condition: service_healthy
@@ -92,8 +94,9 @@ services:
     environment:
       - NODE_ENV=production
       - LOGGER_PORT=${LOGGER_PORT:-4001}
-    ports:
-      - "${LOGGER_PORT:-4001}:4001"
+    # Logger port not exposed - only accessible from internal network
+    # ports:
+    #   - "${LOGGER_PORT:-4001}:4001"
     networks:
       - taskopedia-network
     volumes:
