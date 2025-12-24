@@ -51,7 +51,6 @@ export async function getLogs() {
 
             // Reverse the events array to show latest logs first
             const reversedEvents = logs.events ? [...logs.events].reverse() : [];
-            console.log('Logs:', JSON.stringify(reversedEvents, null, 2));
             return reversedEvents;
         }
         return [];
