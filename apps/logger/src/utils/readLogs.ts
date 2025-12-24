@@ -7,18 +7,13 @@ const getCloudWatchClient = () => {
     }
 
     const config: any = {
-        region: process.env.AWS_REGION || 'ap-south-1',
-        // AWS credentials for local execution (without Docker/LocalStack)
+        region: process.env.AWS_REGION || 'eu-west-2',
+        // AWS credentials for CloudWatch (works for both local and Docker)
         credentials: {
             accessKeyId: process.env.AWS_ACCESS_KEY_ID,
             secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         },
     };
-
-    // Add LocalStack endpoint if enabled
-    if (process.env.LOCALSTACK_ENABLED === 'true') {
-        config.endpoint = process.env.LOCALSTACK_ENDPOINT || 'http://localstack:4566';
-    }
 
     return new CloudWatchLogsClient(config);
 };
